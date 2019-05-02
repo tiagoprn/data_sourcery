@@ -1,4 +1,35 @@
-# TODO: adapt here to the class from base.py
+from data_sourcery.images.base import BaseImageDownloader
+
+
+class NasaImageDownloader(BaseImageDownloader):
+    def __init__(self, remote_path):
+        super().__init__(remote_path)
+        self.local_repository_path = f'{self.local_repository_path}/nasa'
+        self.create_local_repository_if_not_exists()
+
+    def _download(self):
+        """
+        Download logic goes here.
+
+        :return: if downloaded succesffully or not
+        :rtype: bool
+        """
+        # TODO: implement from old code 
+        return True
+
+    def download(self):
+        """
+        Calls private _download method.
+
+        :return: downloaded path if successfully, otherwise blank strng ('').
+        """
+        if self._download():
+            return self.local_repository_path
+        else:
+            return ''
+
+
+# TODO: adapt below to the class from base.py
 """
 This script downloads NASA's Astronomy Picture of the Day and automatically
 sets it as the gnome desktop background.
