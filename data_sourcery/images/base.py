@@ -1,4 +1,8 @@
 class BaseImageDownloader:
+    # TODO: to not need an env file, local_repository_path must be
+    #       $HOME/.local/share/data_sourcery
+    #       (each derived class must be a directory
+    #        e.g. images/nasa, images/commitstrip etc...)
     local_repository_path = ''
     remote_path = ''
 
