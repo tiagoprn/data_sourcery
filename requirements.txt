@@ -19,10 +19,10 @@ prompt-toolkit==1.0.15
 ptyprocess==0.6.0
 Pygments==2.2.0
 python-decouple==3.1
-requests==2.19.1
+requests==2.21.0
 simplegeneric==0.8.1
 six==1.11.0
 traitlets==4.3.2
-urllib3==1.23
+urllib3==1.24.1
 w3lib==1.19.0
 wcwidth==0.1.7
