@@ -1,1 +1,1 @@
-Contains DataSources, to be used e.g. to get wallpapers on various sources.
+Contains DataSources, to be used to download e.g. wallpapers on various sources.
