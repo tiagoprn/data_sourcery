@@ -19,17 +19,12 @@ class BaseImageDownloader:
 
     def _download(self):
         """
-        Download logic goes here.
-
-        :return: if downloaded succesffully or not
-        :rtype: bool
+        Core download logic goes here.
         """
         raise NotImplementedError
 
     def download(self):
         """
-        Calls private _download method.
-
-        :return: downloaded path if successfully, otherwise blank strng ('').
+        Main funcion.
         """
         raise NotImplementedError

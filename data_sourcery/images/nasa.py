@@ -1,44 +1,6 @@
-from data_sourcery.images.base import BaseImageDownloader
-
-
-class NasaImageDownloader(BaseImageDownloader):
-    def __init__(self, remote_path):
-        super().__init__(remote_path)
-        self.local_repository_path = f'{self.local_repository_path}/nasa'
-        self.create_local_repository_if_not_exists()
-
-    def _download(self):
-        """
-        Download logic goes here.
-
-        :return: if downloaded succesffully or not
-        :rtype: bool
-        """
-        # TODO: implement from old code 
-        return True
-
-    def download(self):
-        """
-        Calls private _download method.
-
-        :return: downloaded path if successfully, otherwise blank strng ('').
-        """
-        if self._download():
-            return self.local_repository_path
-        else:
-            return ''
-
-
-# TODO: adapt below to the class from base.py
 """
 This script downloads NASA's Astronomy Picture of the Day and automatically
 sets it as the gnome desktop background.
-
-It relies on the python-decouple lib that provides file-based environment
-variables. So, for this script to work, you
-only need to copy `download_wallpaper.env.sample to download_wallpaper.env,
-and edit the last file with the path where
-the script will save its wallpapers.`
 
 Some functionalities were based on this code:
 https://github.com/tiagoprn/space-pics/blob/master/pic.py
@@ -51,11 +13,11 @@ import lxml
 import os
 import sys
 
-from PIL import Image
 from parsel import Selector
 import requests
 
-from decouple import Config, RepositoryEnv
+from data_sourcery.images.base import BaseImageDownloader
+
 
 os.environ['PYTHONBREAKPOINT'] = 'ipdb.set_trace'
 
@@ -75,135 +37,113 @@ logging.basicConfig(
     format=LOG_FORMAT,
     level=logging.INFO,
     handlers=[
-        logging.FileHandler(f'{CURRENT_SCRIPT_NAME}.log'),
+        logging.FileHandler(f'/tmp/{CURRENT_SCRIPT_NAME}.log'),
         logging.StreamHandler(sys.stdout)
     ])
 
 
-def set_image_as_desktop_background(file_url):
-    #    cmd = [
-    #        'gsettings',
-    #        'set',
-    #        'org.gnome.desktop.background',
-    #        'picture-uri',
-    #        'file://{0}'.format(file_url)
-    #    ]
-    #    subprocess.call(cmd)
+class NasaImageDownloader(BaseImageDownloader):
+    def __init__(self, remote_path):
+        super().__init__(remote_path)
+        self.local_repository_path = f'{self.local_repository_path}/nasa'
+        self.create_local_repository_if_not_exists()
+        if not remote_path:
+            self.remote_path = self._get_wallpaper_url()
+            logging.info(f'remote_path={self.remote_path}')
 
-    cmd = [
-        'feh',
-        '--bg-scale',
-        file_url
-    ]
-    subprocess.call(cmd)
+    @staticmethod
+    def _remove_tags(text):
+        return lxml.html.fromstring(text).text_content().replace(
+            '\n', ' ').replace('  ', ' ')
 
+    @staticmethod
+    def _get_wallpaper_url():
+        domain = 'https://apod.nasa.gov'
 
-def remove_tags(text):
-    return lxml.html.fromstring(text).text_content().replace(
-        '\n', ' ').replace('  ', ' ')
+        html = requests.get(f'{domain}/apod/astropix.html', verify=False).text
+        sel = Selector(text=html)
+        image_url = sel.xpath('/html/body/center[1]/p[2]/a/@href').get()
 
+        image_explanation = _remove_tags(sel.xpath('/html/body/p[1]').get())
 
-def get_wallpaper_url():
-    domain = 'https://apod.nasa.gov'
+        logging.info('-' * 80)
+        logging.info(f'ABOUT THIS IMAGE ==> {image_explanation} ')
+        logging.info('-' * 80)
 
-    html = requests.get(f'{domain}/apod/astropix.html', verify=False).text
-    sel = Selector(text=html)
-    image_url = sel.xpath('/html/body/center[1]/p[2]/a/@href').get()
-
-    image_explanation = remove_tags(sel.xpath('/html/body/p[1]').get())
-
-    logging.info('-'*80)
-    logging.info(f'ABOUT THIS IMAGE ==> {image_explanation} ')
-    logging.info('-'*80)
-
-    url = image_url if image_url.startswith('http') \
+        url = image_url if image_url.startswith('http') \
             else f'{domain}/{image_url}'
 
-    return url
+        return url
 
+    def _download(self):
+        """
+        Downloads and convert the image to the png format.
 
-def download_wallpaper(url, folder):
-    already_downloaded = True
+        :return: local file name converted,
+                if the file has already been downloaded
+        :rtype: tuple(str, bool)
+        """
+        already_downloaded = True
 
-    local_filename = url.split('/')[-1]
-    r = requests.get(url, stream=True, verify=False)
+        local_filename = self.remote_path.split('/')[-1]
+        r = requests.get(self.remote_path, stream=True, verify=False)
 
-    if not folder.endswith('/'):
-        folder += '/'
+        if not self.local_repository_path.endswith('/'):
+            self.local_repository_path += '/'
 
-    downloaded_name = f'{folder}{local_filename}'
-    converted_name = '{}.png'.format(downloaded_name.split('.')[0])
+        downloaded_name = f'{self.local_repository_path}{local_filename}'
+        converted_name = '{}.png'.format(downloaded_name.split('.')[0])
 
-    if not os.path.exists(converted_name):
-        already_downloaded = False
-        if not os.path.exists(downloaded_name):
-            with open(downloaded_name, 'wb') as f:
-                # download in chunks to use less resources
-                for chunk in r.iter_content(chunk_size=1024):
-                    if chunk:  # filter out keep-alive new chunks
-                        f.write(chunk)
-                f.flush()
+        if not os.path.exists(converted_name):
+            already_downloaded = False
+            if not os.path.exists(downloaded_name):
+                with open(downloaded_name, 'wb') as f:
+                    # download in chunks to use less resources
+                    for chunk in r.iter_content(chunk_size=1024):
+                        if chunk:  # filter out keep-alive new chunks
+                            f.write(chunk)
+                    f.flush()
 
-        cmd = [
-            'convert',
-            downloaded_name,
-            converted_name
-        ]
-        subprocess.call(cmd)
+            cmd = [
+                'convert',
+                downloaded_name,
+                converted_name
+            ]
+            subprocess.call(cmd)
 
-        os.unlink(downloaded_name)
+            os.unlink(downloaded_name)
 
-    return converted_name, already_downloaded
+        return converted_name, already_downloaded
 
+    def download(self):
+        """
+        Main function here.
+        """
+        logging.info('Starting...')
 
-if __name__ == "__main__":
-    logging.info('Starting...')
+        logging.info(
+            f'The wallpaper will be downloaded '
+            f'at "{self.local_repository_path}".')
 
-    try:
-        config = Config(RepositoryEnv(config_file_path))
-    except FileNotFoundError:
-        logging.info(f'The config file "{config_file_path}" does not exist. '
-                     f'Create one based on the example '
-                     f'from "{config_file_path}.sample".')
-        sys.exit(1)
+        try:
+            logging.info('Parsing the site to get the image of the day url...')
 
-    DOWNLOAD_FOLDER = config('DOWNLOAD_FOLDER')
+            local_downloaded_path, already_downloaded = self._download()
 
-    logging.info(f'The wallpaper will be downloaded at "{DOWNLOAD_FOLDER}".')
+            if already_downloaded:
+                downloaded_message = f'File had already ' \
+                                     f'been downloaded at ' \
+                                     f'"{local_downloaded_path}"'
+            else:
+                downloaded_message = f'File successfully ' \
+                                     f'downloaded at ' \
+                                     f'"{local_downloaded_path}"'
 
-    if not os.path.exists(DOWNLOAD_FOLDER):
-        logging.debug(f'Creating download folder '
-                      f'{DOWNLOAD_FOLDER} which does not exist...')
-        os.makedirs(DOWNLOAD_FOLDER)
+            logging.info(downloaded_message)
 
-    try:
-        logging.info('Parsing the site to get the image of the day url...')
-
-        wallpaper_url = get_wallpaper_url()
-
-        logging.info(f'URL gotten successfully. Now '
-                     f'I will download "{wallpaper_url}" locally...')
-
-        local_downloaded_path, already_downloaded = download_wallpaper(
-            wallpaper_url, DOWNLOAD_FOLDER)
-
-        if already_downloaded:
-            downloaded_message = f'File had already ' \
-                                 f'been downloaded at "{local_downloaded_path}"'
-        else:
-            downloaded_message = f'File successfully ' \
-                                 f'downloaded at "{local_downloaded_path}"'
-
-        logging.info(downloaded_message)
-
-
-        logging.info(f'Setting image as gnome desktop background...')
-
-        set_image_as_desktop_background(local_downloaded_path)
-
-        logging.info('Finished.')
-        sys.exit(0)
-    except Exception as ex:
-        logging.exception(f'Error running script. It seems '
-                          f'your desktop will not be set this time :(')
-        sys.exit(1)
+            logging.info('Finished.')
+            sys.exit(0)
+        except Exception as ex:
+            logging.exception(f'Error running script. It seems '
+                              f'your desktop will not be set this time :(')
+            sys.exit(1)
