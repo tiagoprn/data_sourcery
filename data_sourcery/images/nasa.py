@@ -19,29 +19,6 @@ import requests
 from data_sourcery.images.base import BaseImageDownloader
 
 
-os.environ['PYTHONBREAKPOINT'] = 'ipdb.set_trace'
-
-CURRENT_SCRIPT_NAME = os.path.splitext(os.path.basename(__file__))[0]
-
-# Sets the environment file used by decouple to load the Configuration
-BASE_DIR = os.path.abspath(__file__)
-config_file_path = os.path.join(os.path.dirname(
-    BASE_DIR), f'{CURRENT_SCRIPT_NAME}.env')
-
-# Configure the logging both to file and to console. Works from python 3.3+
-LOG_FORMAT = ('[%(asctime)s PID %(process)s '
-              '%(filename)s:%(lineno)s - %(funcName)s()] '
-              '%(levelname)s '
-              '%(message)s')
-logging.basicConfig(
-    format=LOG_FORMAT,
-    level=logging.INFO,
-    handlers=[
-        logging.FileHandler(f'/tmp/{CURRENT_SCRIPT_NAME}.log'),
-        logging.StreamHandler(sys.stdout)
-    ])
-
-
 class NasaImageDownloader(BaseImageDownloader):
     def __init__(self, remote_path=''):
         super().__init__(remote_path)
@@ -101,12 +78,14 @@ class NasaImageDownloader(BaseImageDownloader):
         if not os.path.exists(converted_name):
             already_downloaded = False
             if not os.path.exists(downloaded_name):
+                logging.info('Downloading image...')
                 with open(downloaded_name, 'wb') as f:
                     # download in chunks to use less resources
                     for chunk in r.iter_content(chunk_size=1024):
                         if chunk:  # filter out keep-alive new chunks
                             f.write(chunk)
                     f.flush()
+            logging.info('Converting image to png format...')
 
             cmd = [
                 'convert',
@@ -114,6 +93,8 @@ class NasaImageDownloader(BaseImageDownloader):
                 converted_name
             ]
             subprocess.call(cmd)
+
+            logging.info('Removing original (not converted) image...')
 
             os.unlink(downloaded_name)
 
@@ -148,6 +129,5 @@ class NasaImageDownloader(BaseImageDownloader):
             logging.info('Finished.')
             sys.exit(0)
         except Exception as ex:
-            logging.exception(f'Error running script. It seems '
-                              f'your desktop will not be set this time :(')
+            logging.exception(f'Error running script.')
             sys.exit(1)
