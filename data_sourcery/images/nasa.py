@@ -43,7 +43,7 @@ logging.basicConfig(
 
 
 class NasaImageDownloader(BaseImageDownloader):
-    def __init__(self, remote_path):
+    def __init__(self, remote_path=''):
         super().__init__(remote_path)
         self.local_repository_path = f'{self.local_repository_path}/nasa'
         self.create_local_repository_if_not_exists()
@@ -56,15 +56,15 @@ class NasaImageDownloader(BaseImageDownloader):
         return lxml.html.fromstring(text).text_content().replace(
             '\n', ' ').replace('  ', ' ')
 
-    @staticmethod
-    def _get_wallpaper_url():
+    def _get_wallpaper_url(self):
         domain = 'https://apod.nasa.gov'
 
         html = requests.get(f'{domain}/apod/astropix.html', verify=False).text
         sel = Selector(text=html)
         image_url = sel.xpath('/html/body/center[1]/p[2]/a/@href').get()
 
-        image_explanation = _remove_tags(sel.xpath('/html/body/p[1]').get())
+        image_explanation = self._remove_tags(
+            sel.xpath('/html/body/p[1]').get())
 
         logging.info('-' * 80)
         logging.info(f'ABOUT THIS IMAGE ==> {image_explanation} ')
@@ -92,7 +92,11 @@ class NasaImageDownloader(BaseImageDownloader):
             self.local_repository_path += '/'
 
         downloaded_name = f'{self.local_repository_path}{local_filename}'
-        converted_name = '{}.png'.format(downloaded_name.split('.')[0])
+        converted_name = '{}{}.png'.format(
+            self.local_repository_path,
+            downloaded_name.replace(self.local_repository_path, '').split(
+                '.')[0]
+        )
 
         if not os.path.exists(converted_name):
             already_downloaded = False

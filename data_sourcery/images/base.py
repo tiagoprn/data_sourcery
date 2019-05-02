@@ -5,7 +5,7 @@ class BaseImageDownloader:
     local_repository_path = ''
     remote_path = ''
 
-    def __init__(self, remote_path):
+    def __init__(self, remote_path=''):
         home_folder = os.environ.get('HOME')
         local_repository_home = (f'{home_folder}/.local/'
                                  f'share/data_sourcery')
@@ -15,7 +15,7 @@ class BaseImageDownloader:
 
     def create_local_repository_if_not_exists(self):
         if not os.path.exists(self.local_repository_path):
-            os.makedirs(path=self.local_repository_path, exist_ok=True)
+            os.makedirs(self.local_repository_path, exist_ok=True)
 
     def _download(self):
         """
