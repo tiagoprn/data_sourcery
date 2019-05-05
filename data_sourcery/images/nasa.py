@@ -11,7 +11,6 @@ import subprocess
 
 import lxml
 import os
-import sys
 
 from parsel import Selector
 import requests
@@ -110,24 +109,21 @@ class NasaImageDownloader(BaseImageDownloader):
             f'The wallpaper will be downloaded '
             f'at "{self.local_repository_path}".')
 
-        try:
-            logging.info('Parsing the site to get the image of the day url...')
+        logging.info('Parsing the site to get the image of the day url...')
 
-            local_downloaded_path, already_downloaded = self._download()
+        local_downloaded_path, already_downloaded = self._download()
 
-            if already_downloaded:
-                downloaded_message = f'File had already ' \
-                                     f'been downloaded at ' \
-                                     f'"{local_downloaded_path}"'
-            else:
-                downloaded_message = f'File successfully ' \
-                                     f'downloaded at ' \
-                                     f'"{local_downloaded_path}"'
+        if already_downloaded:
+            downloaded_message = f'File had already ' \
+                                 f'been downloaded at ' \
+                                 f'"{local_downloaded_path}"'
+        else:
+            downloaded_message = f'File successfully ' \
+                                 f'downloaded at ' \
+                                 f'"{local_downloaded_path}"'
 
-            logging.info(downloaded_message)
+        logging.info(downloaded_message)
 
-            logging.info('Finished.')
-            sys.exit(0)
-        except Exception as ex:
-            logging.exception(f'Error running script.')
-            sys.exit(1)
+        logging.info('Finished.')
+
+        return local_downloaded_path

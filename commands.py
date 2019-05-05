@@ -49,6 +49,18 @@ def run(content_type, source):
 
     logging.info('\n'.join(message))
 
+    try:
+        SOURCES[source]().download()
+        exit_code = 0
+    except:
+        logging.exception('An exception occurred.')
+        exit_code = 1
+
+    message = 'Successfully quitting' if exit_code == 0 \
+        else 'Quitting on failure'
+    logging.info(message)
+
+    os._exit(exit_code)  # that way it does not trigger SystemExit exception
 
 if __name__ == "__main__":
     run()
