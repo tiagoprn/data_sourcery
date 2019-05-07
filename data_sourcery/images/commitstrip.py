@@ -1,8 +1,5 @@
 """
-This script downloads NASA's Astronomy Picture of the Day.
-
-Some functionalities were based on this code:
-https://github.com/tiagoprn/space-pics/blob/master/pic.py
+This script downloads a random comic from commitstrip.
 """
 
 import logging
@@ -17,38 +14,38 @@ import requests
 from data_sourcery.images.base import BaseImageDownloader
 
 
-class NasaImageDownloader(BaseImageDownloader):
+class CommitstripRandomImageDownloader(BaseImageDownloader):
     def __init__(self, remote_path=''):
         super().__init__(remote_path)
-        self.local_repository_path = f'{self.local_repository_path}/nasa'
+        self.local_repository_path = f'{self.local_repository_path}/commitstrip'
         self.create_local_repository_if_not_exists()
         if not remote_path:
-            self.remote_path = self._get_wallpaper_url()
+            self.remote_path = self._get_random_comic_url()
             logging.info(f'remote_path={self.remote_path}')
 
-    @staticmethod
-    def _remove_tags(text):
-        return lxml.html.fromstring(text).text_content().replace(
-            '\n', ' ').replace('  ', ' ')
+    def _get_random_comic_url(self):
+        domain = 'http://www.commitstrip.com'
 
-    def _get_wallpaper_url(self):
-        domain = 'https://apod.nasa.gov'
-
-        html = requests.get(f'{domain}/apod/astropix.html', verify=False).text
+        html = requests.get(f'{domain}/?random=1', verify=False).text
         sel = Selector(text=html)
-        image_url = sel.xpath('/html/body/center[1]/p[2]/a/@href').get()
+        random_url_xpath = ('/html/body/div[2]/div[2]/div[1]/div/div/div/div/'
+                            'article/header/div/a/@href')
 
-        image_explanation = self._remove_tags(
-            sel.xpath('/html/body/p[1]').get())
+        random_image_url = sel.xpath(random_url_xpath).get()
 
-        logging.info('-' * 80)
-        logging.info(f'ABOUT THIS IMAGE ==> {image_explanation} ')
-        logging.info('-' * 80)
+        html = requests.get(random_image_url, verify=False).text
+        sel = Selector(text=html)
+        image_xpath = ('/html/body/div[2]/div[2]/div[1]/div/div/div/div/'
+                       'article/div/p/img/@src')
+        image_url = sel.xpath(image_xpath).get()
 
-        url = image_url if image_url.startswith('http') \
-            else f'{domain}/{image_url}'
+        return image_url
 
-        return url
+    @staticmethod
+    def _get_image_height(downloaded_path):
+        height_command = f'identify -ping -format "%h" {downloaded_path}'
+        image_height = os.popen(height_command).read()
+        return int(image_height)
 
     def _download(self):
         """
@@ -61,6 +58,7 @@ class NasaImageDownloader(BaseImageDownloader):
         already_downloaded = True
 
         local_filename = self.remote_path.split('/')[-1]
+
         r = requests.get(self.remote_path, stream=True, verify=False)
 
         if not self.local_repository_path.endswith('/'):
@@ -83,14 +81,16 @@ class NasaImageDownloader(BaseImageDownloader):
                         if chunk:  # filter out keep-alive new chunks
                             f.write(chunk)
                     f.flush()
-            logging.info('Converting image to png format...')
 
-            cmd = [
-                'convert',
-                downloaded_name,
-                converted_name
-            ]
-            subprocess.call(cmd)
+            logging.info('Converting image to png format...')
+            image_height = self._get_image_height(downloaded_name)
+            resize_subcommand = '-resize x1080' if image_height > 1080 else ''
+            if resize_subcommand:
+                logging.info("Image will be resized, since its' "
+                             "size exceeds 1080 px.")
+            command = (f'convert {resize_subcommand} '
+                      f'{downloaded_name} {converted_name}')
+            os.popen(command)
 
             logging.info('Removing original (not converted) image...')
 
@@ -108,7 +108,7 @@ class NasaImageDownloader(BaseImageDownloader):
             f'The wallpaper will be downloaded '
             f'at "{self.local_repository_path}".')
 
-        logging.info('Parsing the site to get the image of the day url...')
+        logging.info('Parsing the site to get the random image url...')
 
         local_downloaded_path, already_downloaded = self._download()
 

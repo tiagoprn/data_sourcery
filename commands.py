@@ -5,6 +5,7 @@ import sys
 import click
 
 from data_sourcery.images.nasa import NasaImageDownloader
+from data_sourcery.images.commitstrip import CommitstripRandomImageDownloader
 
 os.environ['PYTHONBREAKPOINT'] = 'ipdb.set_trace'
 
@@ -27,7 +28,8 @@ logging.basicConfig(
 
 CONTENT_TYPES = ['image']
 SOURCES = {
-    'nasa': NasaImageDownloader
+    'nasa': NasaImageDownloader,
+    'commitstrip': CommitstripRandomImageDownloader
 }
 
 
@@ -61,6 +63,7 @@ def run(content_type, source):
     logging.info(message)
 
     os._exit(exit_code)  # that way it does not trigger SystemExit exception
+
 
 if __name__ == "__main__":
     run()
