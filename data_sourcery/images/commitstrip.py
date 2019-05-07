@@ -4,6 +4,7 @@ This script downloads a random comic from commitstrip.
 
 import logging
 import subprocess
+from time import sleep
 
 import lxml
 import os
@@ -94,8 +95,6 @@ class CommitstripRandomImageDownloader(BaseImageDownloader):
 
             logging.info('Removing original (not converted) image...')
 
-            os.unlink(downloaded_name)
-
         return converted_name, already_downloaded
 
     def download(self):
@@ -123,6 +122,11 @@ class CommitstripRandomImageDownloader(BaseImageDownloader):
 
         logging.info(downloaded_message)
 
-        logging.info('Finished.')
+        original_jpg_file = local_downloaded_path.replace('.png', '.jpg')
+        logging.info(f'Removing original jpg file {original_jpg_file}...')
+        sleep(1)  # Had to be added so convert command worked with no errors.
+        os.popen(f'rm -f {original_jpg_file}')
+
+        logging.info(f'Finished downloading to {local_downloaded_path}.')
 
         return local_downloaded_path

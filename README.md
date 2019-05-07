@@ -6,3 +6,6 @@ Contains DataSources, to be used to download e.g. wallpapers on various sources.
 
     `$ python commands.py --content-type image --source nasa` 
 
+- Commitstrip random comic: 
+
+    `$ python commands.py --content-type image --source commitstrip` 
