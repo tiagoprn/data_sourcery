@@ -1,4 +1,4 @@
-- [ ] Add unit tests with tox (python 3.5+, see my telegram com o link para isso)
+- [ ] Add unit tests with tox (python 3.5+, see my telegram with the link to that.)
 - [ ] Transform into a python package and upload to pypi (for it to be used e.g. as a telegram
   bot): https://packaging.python.org/tutorials/packaging-projects/
 - [ ] Install the package from pypi on Arch as root for it to be used as lightdm source for
