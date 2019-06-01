@@ -18,8 +18,9 @@ Useful to get an image from a source. E.g.:
 
 - NASA image of the day:
 
-    `$ python commands.py --content-type image --source nasa` 
+    `$ python -m data_sourcery.commands --content-type image --source nasa`
 
 - Commitstrip random comic: 
 
-    `$ python commands.py --content-type image --source commitstrip` 
+    `$ python -m data_sourcery.commands --content-type image --source commitstrip`
+
