@@ -14,7 +14,7 @@ import os
 from parsel import Selector
 import requests
 
-from data_sourcery.images.base import BaseImageDownloader
+from data_sourcery.sources.images.base import BaseImageDownloader
 
 
 class NasaImageDownloader(BaseImageDownloader):

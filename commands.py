@@ -4,8 +4,8 @@ import sys
 
 import click
 
-from data_sourcery.images.nasa import NasaImageDownloader
-from data_sourcery.images.commitstrip import CommitstripRandomImageDownloader
+from data_sourcery.sources.images.nasa import NasaImageDownloader
+from data_sourcery.sources.images.commitstrip import CommitstripRandomImageDownloader
 
 os.environ['PYTHONBREAKPOINT'] = 'ipdb.set_trace'
 

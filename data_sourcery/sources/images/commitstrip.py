@@ -3,16 +3,14 @@ This script downloads a random comic from commitstrip.
 """
 
 import logging
-import subprocess
 from time import sleep
 
-import lxml
 import os
 
 from parsel import Selector
 import requests
 
-from data_sourcery.images.base import BaseImageDownloader
+from data_sourcery.sources.images.base import BaseImageDownloader
 
 
 class CommitstripRandomImageDownloader(BaseImageDownloader):
