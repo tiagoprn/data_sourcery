@@ -1,5 +1,6 @@
-- [ ] Transform into a python package and upload to pypi (for it to be used e.g. as a telegram
-  bot): https://packaging.python.org/tutorials/packaging-projects/
+- [ ] Rename the script commands.py to something less general
+- [ ] Make the changes described here for the renamed script commands.py to be executable: bot): https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html
+- [ ] Package and upload to pypi, following my instructions from here: https://tiagopr.nl/posts/package-python-project-to-pypi/
 - [ ] Add black as a linter
 - [ ] Add unit tests with tox (python 3.5+, see my telegram with the link to that.)
 - [ ] Add TravisCI pipeline to run tests and auto upload to PyPi.

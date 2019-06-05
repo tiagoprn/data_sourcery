@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="data_sourcery",
-    version="0.5",
+    version="0.6",
     author="Tiago Paranhos Lima",
     author_email="tiago@tiagoprnl.me",
     description="Get data (e.g. images) from sources.",
